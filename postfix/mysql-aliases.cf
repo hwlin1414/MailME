@@ -1,0 +1,10 @@
+hosts = DBHost
+user = DBUser
+password = DBPassword
+
+# The database name on the servers.
+dbname = DBName
+
+# For Postfix 2.2 and later The SQL query template.
+# See mysql_table(5) for details.
+query = SELECT CONCAT('"| /usr/bin/env python /path/to/mailme/send.py ', `fid`, '"') FROM `users` WHERE `alias`='%u' AND `deleted_at` IS NULL
