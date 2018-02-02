@@ -54,41 +54,44 @@ def app_message(sender, text):
         "help": [u"help", u"幫助"],
     }
     cmd = text.split()
-    if cmd[0] in msgmap['reg']:
-        result = re.match('^[a-zA-Z0-9_]{3,24}$', cmd[1])
-        if result is None:
-            send.send_message(sender, u"註冊電子郵件地址僅能包含英文、數字、_，且須於3~24個字元")
-            return
-        if cmd[1] in config.RESERVE:
-            send.send_message(sender, u"該帳號為保留字")
-            return
-        cursor.execute(
-            "SELECT * FROM `users` WHERE `alias` = %(alias)s AND `fid` != %(fid)s",
-            {"fid": sender, "alias": cmd[1]}
-        )
-        rows = cursor.fetchall()
-        if len(rows) != 0:
-            send.send_message(sender, u"該帳號已被其他人註冊走囉~")
-            return
+    try:
+        if cmd[0] in msgmap['reg']:
+            result = re.match('^[a-zA-Z0-9_]{3,24}$', cmd[1])
+            if result is None:
+                send.send_message(sender, u"註冊電子郵件地址僅能包含英文、數字、_，且須於3~24個字元")
+                return
+            if cmd[1] in config.RESERVE:
+                send.send_message(sender, u"該帳號為保留字")
+                return
+            cursor.execute(
+                "SELECT * FROM `users` WHERE `alias` = %(alias)s AND `fid` != %(fid)s",
+                {"fid": sender, "alias": cmd[1]}
+            )
+            rows = cursor.fetchall()
+            if len(rows) != 0:
+                send.send_message(sender, u"該帳號已被其他人註冊走囉~")
+                return
 
-        cursor.execute(
-            "UPDATE `users` SET `deleted_at` = CURRENT_TIMESTAMP() WHERE `fid` = %(fid)s",
-            {"fid": sender}
-        );
-        cursor.execute(
-            "INSERT INTO `users`(`fid`, `alias`) VALUE(%(fid)s, %(alias)s)",
-            {"fid": sender, "alias": cmd[1]}
-        );
-        send.send_message(sender, u"註冊成功，您可以開始寄信至 {alias}@mailme.csie.io".format(alias = cmd[1]))
-    elif cmd[0] in msgmap['unreg']:
-        cursor.execute(
-            "UPDATE `users` SET `deleted_at` = CURRENT_TIMESTAMP() WHERE `fid` = %(fid)s",
-            {"fid": sender}
-        );
-        send.send_message(sender, u"已取消註冊")
-    elif cmd[0] in msgmap['help']:
-        pass
-    else:
+            cursor.execute(
+                "UPDATE `users` SET `deleted_at` = CURRENT_TIMESTAMP() WHERE `fid` = %(fid)s",
+                {"fid": sender}
+            );
+            cursor.execute(
+                "INSERT INTO `users`(`fid`, `alias`) VALUES (%(fid)s, %(alias)s),(%(fid)s, %(alias2)s)",
+                {"fid": sender, "alias": cmd[1], "alias2": 'owner-'+cmd[1]}
+            );
+            send.send_message(sender, u"註冊成功，您可以開始寄信至 {alias}@mailme.csie.io".format(alias = cmd[1]))
+        elif cmd[0] in msgmap['unreg']:
+            cursor.execute(
+                "UPDATE `users` SET `deleted_at` = CURRENT_TIMESTAMP() WHERE `fid` = %(fid)s",
+                {"fid": sender}
+            );
+            send.send_message(sender, u"已取消註冊")
+        elif cmd[0] in msgmap['help']:
+            pass
+        else:
+            send.send_message(sender, u"您好，歡迎使用MailME，請詳閱粉專說明後，輸入\"註冊 XXX\"或\"取消註冊\"")
+    except:
         send.send_message(sender, u"您好，歡迎使用MailME，請詳閱粉專說明後，輸入\"註冊 XXX\"或\"取消註冊\"")
 
 if __name__ == '__main__':
