@@ -1,5 +1,1 @@
 alias_maps = hash:/etc/aliases, mysql:/path/to/postfix/mysql-aliases.cf
-smtpd_use_tls = yes
-smtpd_tls_key_file = /path/to/ssl/privkey.pem
-smtpd_tls_cert_file = /path/to/ssl/fullchain.pem
-smtp_tls_CAfile = $smtpd_tls_cert_file
